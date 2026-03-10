@@ -9,7 +9,6 @@ export default async function ConfirmarHuecoPage({
   const { token } = await params
   const supabase = await createClient()
 
-  // Buscar el item de lista de espera por token
   const { data: item } = await supabase
     .from('waiting_list')
     .select(`*, patients(full_name, email)`)
@@ -29,17 +28,7 @@ export default async function ConfirmarHuecoPage({
     )
   }
 
-  // Buscar la cita cancelada más reciente de la clínica
-  const { data: citaCancelada } = await supabase
-    .from('appointments')
-    .select(`*, users(full_name)`)
-    .eq('clinic_id', item.clinic_id)
-    .eq('status', 'cancelled')
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .single()
-
-  if (!citaCancelada) {
+  if (!item.appointment_id) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md w-full text-center">
@@ -51,10 +40,29 @@ export default async function ConfirmarHuecoPage({
     )
   }
 
-  const fecha = new Date(citaCancelada.starts_at).toLocaleDateString('es-ES', {
+  const { data: cita } = await supabase
+    .from('appointments')
+    .select(`*, users(full_name)`)
+    .eq('id', item.appointment_id)
+    .eq('status', 'cancelled')
+    .single()
+
+  if (!cita) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md w-full text-center">
+          <p className="text-4xl mb-4">😔</p>
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">Hueco ya ocupado</h1>
+          <p className="text-slate-500 text-sm">Lo sentimos, este hueco ya ha sido ocupado por otro paciente.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const fecha = new Date(cita.starts_at).toLocaleDateString('es-ES', {
     weekday: 'long', day: 'numeric', month: 'long'
   })
-  const hora = new Date(citaCancelada.starts_at).toLocaleTimeString('es-ES', {
+  const hora = new Date(cita.starts_at).toLocaleTimeString('es-ES', {
     hour: '2-digit', minute: '2-digit'
   })
 
@@ -62,16 +70,14 @@ export default async function ConfirmarHuecoPage({
     'use server'
     const supabase = await createClient()
 
-    // Actualizar la cita cancelada con el nuevo paciente
     await supabase
       .from('appointments')
       .update({
         patient_id: item.patient_id,
         status: 'confirmed',
       })
-      .eq('id', citaCancelada.id)
+      .eq('id', cita.id)
 
-    // Eliminar de lista de espera
     await supabase
       .from('waiting_list')
       .update({ status: 'assigned' })
@@ -92,7 +98,7 @@ export default async function ConfirmarHuecoPage({
         <div className="bg-slate-50 rounded-xl p-5 mb-6">
           <p className="text-sm mb-2"><strong>📅 Fecha:</strong> {fecha}</p>
           <p className="text-sm mb-2"><strong>🕐 Hora:</strong> {hora}</p>
-          <p className="text-sm"><strong>👨‍⚕️ Fisioterapeuta:</strong> {citaCancelada.users?.full_name ?? 'Nuestro equipo'}</p>
+          <p className="text-sm"><strong>👨‍⚕️ Fisioterapeuta:</strong> {cita.users?.full_name ?? 'Nuestro equipo'}</p>
         </div>
 
         <form action={confirmarHueco}>

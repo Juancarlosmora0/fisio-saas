@@ -40,10 +40,16 @@ export async function POST(request: Request) {
 
   let avisados = 0
 
-  for (const item of listaEspera) {
+for (const item of listaEspera) {
     if (!item.patients?.email) continue
 
     const enlaceConfirmacion = `${baseUrl}/confirmar-hueco/${item.confirmation_token}`
+
+    // Guardar el appointment_id en la lista de espera
+    await supabase
+      .from('waiting_list')
+      .update({ appointment_id: cita.id })
+      .eq('id', item.id)
 
     await resend.emails.send({
       from: 'FisioFlow <onboarding@resend.dev>',
