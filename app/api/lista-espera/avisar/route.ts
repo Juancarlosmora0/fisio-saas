@@ -30,26 +30,31 @@ export async function POST(request: Request) {
   }
 
   const fecha = new Date(cita.starts_at).toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long'
+    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: 'Europe/Madrid'
   })
   const hora = new Date(cita.starts_at).toLocaleTimeString('es-ES', {
-    hour: '2-digit', minute: '2-digit'
+    hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Madrid'
   })
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   let avisados = 0
 
-for (const item of listaEspera) {
+  for (const item of listaEspera) {
     if (!item.patients?.email) continue
 
-    const enlaceConfirmacion = `${baseUrl}/confirmar-hueco/${item.confirmation_token}`
-
     // Guardar el appointment_id en la lista de espera
-    await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('waiting_list')
-      .update({ appointment_id: cita.id })
+      .update({ appointment_id: citaId })
       .eq('id', item.id)
+      .select()
+
+    console.log('Update resultado:', updateData, 'Error:', updateError)
+
+    const enlaceConfirmacion = `${baseUrl}/confirmar-hueco/${item.confirmation_token}`
 
     await resend.emails.send({
       from: 'FisioFlow <onboarding@resend.dev>',
