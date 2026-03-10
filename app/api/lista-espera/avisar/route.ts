@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   const { citaId } = await request.json()
   const supabase = await createClient()
 
-  // Obtener la cita cancelada
   const { data: cita } = await supabase
     .from('appointments')
     .select(`*, users(full_name)`)
@@ -19,7 +18,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Cita no encontrada' }, { status: 404 })
   }
 
-  // Buscar pacientes en lista de espera
   const { data: listaEspera } = await supabase
     .from('waiting_list')
     .select(`*, patients(full_name, email)`)
@@ -38,10 +36,14 @@ export async function POST(request: Request) {
     hour: '2-digit', minute: '2-digit'
   })
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
   let avisados = 0
 
   for (const item of listaEspera) {
     if (!item.patients?.email) continue
+
+    const enlaceConfirmacion = `${baseUrl}/confirmar-hueco/${item.confirmation_token}`
 
     await resend.emails.send({
       from: 'FisioFlow <onboarding@resend.dev>',
@@ -58,7 +60,13 @@ export async function POST(request: Request) {
             <p style="margin: 0;"><strong>👨‍⚕️ Fisioterapeuta:</strong> ${cita.users?.full_name ?? 'Nuestro equipo'}</p>
           </div>
 
-          <p style="color: #64748b; font-size: 14px;">Si te interesa esta cita, contacta con la clínica lo antes posible para reservarla.</p>
+          <a href="${enlaceConfirmacion}" style="display: block; background: #16a34a; color: white; text-align: center; padding: 14px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+            ✅ Confirmar este hueco
+          </a>
+
+          <p style="color: #94a3b8; font-size: 12px; text-align: center;">
+            Si no puedes asistir, simplemente ignora este mensaje.
+          </p>
           
           <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
             <p style="color: #94a3b8; font-size: 12px; margin: 0;">FisioFlow · Sistema de gestión de clínicas</p>
