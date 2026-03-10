@@ -39,3 +39,40 @@ export async function enviarRecordatorioCita({
     `,
   })
 }
+export async function enviarConfirmacionCita({
+  pacienteEmail,
+  pacienteNombre,
+  fecha,
+  hora,
+  fisioterapeuta,
+}: {
+  pacienteEmail: string
+  pacienteNombre: string
+  fecha: string
+  hora: string
+  fisioterapeuta: string
+}) {
+  await resend.emails.send({
+    from: 'FisioFlow <onboarding@resend.dev>',
+    to: pacienteEmail,
+    subject: `✅ Tu cita ha sido confirmada - ${fecha}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #16a34a; margin-bottom: 8px;">¡Tu cita está confirmada!</h2>
+        <p style="color: #64748b; margin-bottom: 24px;">Hola ${pacienteNombre}, tu cita ha sido confirmada correctamente:</p>
+        
+        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #bbf7d0;">
+          <p style="margin: 0 0 8px 0;"><strong>📅 Fecha:</strong> ${fecha}</p>
+          <p style="margin: 0 0 8px 0;"><strong>🕐 Hora:</strong> ${hora}</p>
+          <p style="margin: 0;"><strong>👨‍⚕️ Fisioterapeuta:</strong> ${fisioterapeuta}</p>
+        </div>
+
+        <p style="color: #64748b; font-size: 14px;">Si necesitas cancelar, contacta con la clínica con al menos 24 horas de antelación.</p>
+        
+        <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">FisioFlow · Sistema de gestión de clínicas</p>
+        </div>
+      </div>
+    `,
+  })
+}

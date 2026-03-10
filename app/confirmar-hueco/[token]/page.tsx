@@ -70,6 +70,18 @@ export default async function ConfirmarHuecoPage({
     'use server'
     const supabase = await createClient()
 
+    // Verificar que la cita sigue cancelada (no la ha cogido otro)
+    const { data: citaActual } = await supabase
+      .from('appointments')
+      .select('status')
+      .eq('id', cita.id)
+      .single()
+
+    if (citaActual?.status !== 'cancelled') {
+      redirect('/confirmar-hueco/ocupado')
+    }
+
+    // Asignar cita al paciente
     await supabase
       .from('appointments')
       .update({
@@ -78,10 +90,18 @@ export default async function ConfirmarHuecoPage({
       })
       .eq('id', cita.id)
 
+    // Marcar este item como asignado
     await supabase
       .from('waiting_list')
       .update({ status: 'assigned' })
       .eq('id', item.id)
+
+    // Invalidar todos los demás tokens del mismo hueco
+    await supabase
+      .from('waiting_list')
+      .update({ appointment_id: null })
+      .eq('appointment_id', cita.id)
+      .neq('id', item.id)
 
     redirect('/confirmar-hueco/exito')
   }
