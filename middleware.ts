@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const publicRoutes = ['/login']
+  const publicRoutes = ['/login', '/confirmar-hueco']
   const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r))
 
   if (!user && !isPublicRoute) {
