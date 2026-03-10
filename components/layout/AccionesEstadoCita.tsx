@@ -23,6 +23,15 @@ export default function AccionesEstadoCita({ citaId, estadoActual, pacienteEmail
       .update({ status: nuevoEstado })
       .eq('id', citaId)
 
+    // Si se confirma, enviar email de confirmación al paciente
+    if (nuevoEstado === 'confirmed') {
+      await fetch('/api/confirmacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ citaId }),
+      })
+    }
+
     // Si se cancela, avisar automáticamente a lista de espera
     if (nuevoEstado === 'cancelled') {
       const res = await fetch('/api/lista-espera/avisar', {
@@ -71,7 +80,7 @@ export default function AccionesEstadoCita({ citaId, estadoActual, pacienteEmail
 
   const botones = [
     { estado: 'scheduled', label: '🔄 Reactivar', color: 'bg-slate-100 text-slate-700 hover:bg-slate-200', mostrar: estadoActual === 'cancelled' || estadoActual === 'no_show' },
-    { estado: 'confirmed', label: '✅ Confirmar', color: 'bg-green-100 text-green-700 hover:bg-green-200', mostrar: estadoActual === 'scheduled' },
+    { estado: 'confirmed', label: '✅ Confirmar', color: 'bg-green-100 text-green-700 hover:bg-green-200', mostrar: estadoActual === 'scheduled' || estadoActual === 'pending' },
     { estado: 'completed', label: '🏁 Completada', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200', mostrar: estadoActual === 'confirmed' || estadoActual === 'scheduled' },
     { estado: 'no_show', label: '👻 No-show', color: 'bg-orange-100 text-orange-700 hover:bg-orange-200', mostrar: estadoActual !== 'cancelled' && estadoActual !== 'completed' && estadoActual !== 'no_show' },
     { estado: 'cancelled', label: '❌ Cancelar', color: 'bg-red-100 text-red-700 hover:bg-red-200', mostrar: estadoActual !== 'cancelled' && estadoActual !== 'completed' },
@@ -79,6 +88,13 @@ export default function AccionesEstadoCita({ citaId, estadoActual, pacienteEmail
 
   return (
     <div className="space-y-4">
+      {/* Aviso cita pendiente */}
+      {estadoActual === 'pending' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-2">
+          <p className="text-xs text-yellow-700 font-medium">⏳ Solicitud pendiente de confirmar — el paciente reservó esta cita online</p>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {botones.filter(b => b.mostrar).map(b => (
           <button
@@ -112,7 +128,7 @@ export default function AccionesEstadoCita({ citaId, estadoActual, pacienteEmail
       )}
 
       {/* Recordatorio email */}
-      {pacienteEmail && estadoActual !== 'cancelled' && estadoActual !== 'completed' && (
+      {pacienteEmail && estadoActual !== 'cancelled' && estadoActual !== 'completed' && estadoActual !== 'pending' && (
         <div className="pt-3 border-t border-slate-100">
           <button
             onClick={enviarRecordatorio}

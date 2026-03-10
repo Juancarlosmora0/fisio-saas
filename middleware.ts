@@ -24,14 +24,14 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const publicRoutes = ['/login', '/confirmar-hueco']
+  const publicRoutes = ['/login', '/confirmar-hueco', '/reservar']
   const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r))
 
   if (!user && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && isPublicRoute) {
+  if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/agenda', request.url))
   }
 

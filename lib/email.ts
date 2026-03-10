@@ -76,3 +76,47 @@ export async function enviarConfirmacionCita({
     `,
   })
 }
+export async function enviarNuevaSolicitudReserva({
+  clinicaEmail,
+  pacienteNombre,
+  pacienteEmail,
+  pacienteTelefono,
+  fecha,
+  hora,
+  notas,
+}: {
+  clinicaEmail: string
+  pacienteNombre: string
+  pacienteEmail: string
+  pacienteTelefono: string
+  fecha: string
+  hora: string
+  notas?: string | null
+}) {
+  await resend.emails.send({
+    from: 'FisioFlow <onboarding@resend.dev>',
+    to: clinicaEmail,
+    subject: `📅 Nueva solicitud de cita — ${pacienteNombre}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #1e40af; margin-bottom: 8px;">Nueva solicitud de cita</h2>
+        <p style="color: #64748b; margin-bottom: 24px;">Un paciente ha solicitado una cita online:</p>
+        
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <p style="margin: 0 0 8px 0;"><strong>👤 Paciente:</strong> ${pacienteNombre}</p>
+          <p style="margin: 0 0 8px 0;"><strong>📧 Email:</strong> ${pacienteEmail}</p>
+          <p style="margin: 0 0 8px 0;"><strong>📞 Teléfono:</strong> ${pacienteTelefono}</p>
+          <p style="margin: 0 0 8px 0;"><strong>📅 Fecha:</strong> ${fecha}</p>
+          <p style="margin: 0 0 8px 0;"><strong>🕐 Hora:</strong> ${hora}</p>
+          ${notas ? `<p style="margin: 0;"><strong>📝 Motivo:</strong> ${notas}</p>` : ''}
+        </div>
+
+        <p style="color: #64748b; font-size: 14px;">Accede a FisioFlow para confirmar o rechazar esta solicitud.</p>
+        
+        <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">FisioFlow · Sistema de gestión de clínicas</p>
+        </div>
+      </div>
+    `,
+  })
+}
