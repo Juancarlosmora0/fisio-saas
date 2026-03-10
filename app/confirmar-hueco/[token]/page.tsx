@@ -44,10 +44,9 @@ export default async function ConfirmarHuecoPage({
     .from('appointments')
     .select(`*, users(full_name)`)
     .eq('id', item.appointment_id)
-    .eq('status', 'cancelled')
     .single()
 
-  if (!cita) {
+  if (!cita || cita.status !== 'cancelled') {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md w-full text-center">
@@ -60,10 +59,12 @@ export default async function ConfirmarHuecoPage({
   }
 
   const fecha = new Date(cita.starts_at).toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long'
+    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: 'Europe/Madrid'
   })
   const hora = new Date(cita.starts_at).toLocaleTimeString('es-ES', {
-    hour: '2-digit', minute: '2-digit'
+    hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Madrid'
   })
 
   async function confirmarHueco() {
@@ -115,7 +116,7 @@ export default async function ConfirmarHuecoPage({
           <p className="text-slate-500 text-sm">Hola {item.patients?.full_name}, confirma tu cita:</p>
         </div>
 
-        <div className="bg-slate-50 rounded-xl p-5 mb-6">
+        <div className="bg-blue-50 rounded-xl p-5 mb-6 border border-blue-100">
           <p className="text-sm mb-2"><strong>📅 Fecha:</strong> {fecha}</p>
           <p className="text-sm mb-2"><strong>🕐 Hora:</strong> {hora}</p>
           <p className="text-sm"><strong>👨‍⚕️ Fisioterapeuta:</strong> {cita.users?.full_name ?? 'Nuestro equipo'}</p>

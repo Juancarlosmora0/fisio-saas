@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   const { citaId } = await request.json()
-
   const supabase = await createClient()
 
   const { data: cita } = await supabase
@@ -22,10 +21,12 @@ export async function POST(request: Request) {
   }
 
   const fecha = new Date(cita.starts_at).toLocaleDateString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long'
+    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: 'Europe/Madrid'
   })
   const hora = new Date(cita.starts_at).toLocaleTimeString('es-ES', {
-    hour: '2-digit', minute: '2-digit'
+    hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Madrid'
   })
 
   await enviarRecordatorioCita({
