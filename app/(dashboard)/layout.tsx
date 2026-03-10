@@ -39,6 +39,10 @@ export default function DashboardLayout({
           <a href="/ajustes" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
             ⚙️ Ajustes
           </a>
+          <a href="/lista-espera" className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
+  <span>⏳</span>
+  Lista de espera
+</a>
         </nav>
 
         {/* Usuario */}

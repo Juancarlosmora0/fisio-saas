@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import AccionesEstadoCita from '@/components/layout/AccionesEstadoCita'
+import AlertaRiesgo from '@/components/layout/AlertaRiesgo'
 
 export default async function DetalleCitaPage({
   params,
@@ -22,6 +23,12 @@ export default async function DetalleCitaPage({
       </div>
     )
   }
+
+  const { data: riesgo } = await supabase
+    .from('patient_cancellation_risk')
+    .select('*')
+    .eq('id', cita.patient_id)
+    .single()
 
   const estadoLabel: Record<string, string> = {
     scheduled: '🕐 Programada',
@@ -54,7 +61,14 @@ export default async function DetalleCitaPage({
         </span>
       </div>
 
-      {/* Datos de la cita */}
+      {riesgo && (
+        <AlertaRiesgo
+          totalCancelaciones={riesgo.total_cancelaciones}
+          nivelRiesgo={riesgo.nivel_riesgo}
+          porcentajeCancelacion={riesgo.porcentaje_cancelacion}
+        />
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
         <h2 className="text-sm font-semibold text-slate-900 mb-4">Información</h2>
         <div className="grid grid-cols-2 gap-4">
@@ -89,12 +103,10 @@ export default async function DetalleCitaPage({
         </div>
       </div>
 
-      {/* Acciones */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
         <h2 className="text-sm font-semibold text-slate-900 mb-3">Cambiar estado</h2>
-        <AccionesEstadoCita citaId={cita.id} estadoActual={cita.status} />
+        <AccionesEstadoCita citaId={cita.id} estadoActual={cita.status} pacienteEmail={cita.patients?.email} />
       </div>
-
     </div>
   )
 }
