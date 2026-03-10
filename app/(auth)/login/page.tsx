@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -13,11 +14,15 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    // TODO: conectar Supabase aquí
-    setTimeout(() => {
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      setError('Email o contraseña incorrectos.')
       setLoading(false)
-      setError('Conecta Supabase para activar el login.')
-    }, 800)
+    } else {
+      window.location.href = '/agenda'
+    }
   }
 
   return (

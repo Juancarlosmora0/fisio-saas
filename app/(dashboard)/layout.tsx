@@ -1,3 +1,7 @@
+'use client'
+
+import LogoutButton from '@/components/layout/LogoutButton'
+
 export default function DashboardLayout({
   children,
 }: {
@@ -39,15 +43,7 @@ export default function DashboardLayout({
 
         {/* Usuario */}
         <div className="p-3 border-t border-slate-100">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-600">
-              A
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-slate-900">Admin</p>
-              <p className="text-xs text-slate-400">admin@clinica.com</p>
-            </div>
-          </div>
+          <LogoutButton />
         </div>
 
       </aside>
