@@ -1,19 +1,21 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getClinicId } from '@/lib/supabase/server'
 import Link from 'next/link'
 
 export default async function FacturacionPage() {
   const supabase = await createClient()
+  const clinicId = await getClinicId()
+  if (!clinicId) return null
 
   const { data: pagos } = await supabase
     .from('payments')
     .select(`*, patients(full_name), appointments(starts_at)`)
-    .eq('clinic_id', '76391f90-d92a-4768-8e2e-0de8c83ae7a1')
+    .eq('clinic_id', clinicId)
     .order('created_at', { ascending: false })
 
   const { data: bonos } = await supabase
     .from('bonos')
     .select(`*, patients(full_name)`)
-    .eq('clinic_id', '76391f90-d92a-4768-8e2e-0de8c83ae7a1')
+    .eq('clinic_id', clinicId)
     .order('created_at', { ascending: false })
 
   const totalMes = pagos

@@ -1,21 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getClinicId } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function NuevoBonoPage() {
   const supabase = await createClient()
+  const clinicId = await getClinicId()
+  if (!clinicId) return null
 
   const { data: pacientes } = await supabase
     .from('patients')
     .select('id, full_name')
-    .eq('clinic_id', '76391f90-d92a-4768-8e2e-0de8c83ae7a1')
+    .eq('clinic_id', clinicId)
     .order('full_name')
 
   async function crearBono(formData: FormData) {
     'use server'
     const supabase = await createClient()
+    const clinicId = await getClinicId()
+    if (!clinicId) return
 
     await supabase.from('bonos').insert({
-      clinic_id: '76391f90-d92a-4768-8e2e-0de8c83ae7a1',
+      clinic_id: clinicId,
       patient_id: formData.get('patient_id') as string,
       nombre: formData.get('nombre') as string,
       sesiones_totales: parseInt(formData.get('sesiones_totales') as string),
@@ -23,9 +27,8 @@ export default async function NuevoBonoPage() {
       status: 'active',
     })
 
-    // Registrar el pago del bono
     await supabase.from('payments').insert({
-      clinic_id: '76391f90-d92a-4768-8e2e-0de8c83ae7a1',
+      clinic_id: clinicId,
       patient_id: formData.get('patient_id') as string,
       amount: parseFloat(formData.get('precio_total') as string),
       method: 'bono',

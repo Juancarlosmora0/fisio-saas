@@ -1,24 +1,28 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getClinicId } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function NuevoPagoPage() {
   const supabase = await createClient()
+  const clinicId = await getClinicId()
+  if (!clinicId) return null
 
   const { data: pacientes } = await supabase
     .from('patients')
     .select('id, full_name')
-    .eq('clinic_id', '76391f90-d92a-4768-8e2e-0de8c83ae7a1')
+    .eq('clinic_id', clinicId)
     .order('full_name')
 
   const { data: bonos } = await supabase
     .from('bonos')
     .select(`id, nombre, sesiones_usadas, sesiones_totales, patient_id, patients(full_name)`)
-    .eq('clinic_id', '76391f90-d92a-4768-8e2e-0de8c83ae7a1')
+    .eq('clinic_id', clinicId)
     .eq('status', 'active')
 
   async function crearPago(formData: FormData) {
     'use server'
     const supabase = await createClient()
+    const clinicId = await getClinicId()
+    if (!clinicId) return
 
     const method = formData.get('method') as string
     const bonoId = formData.get('bono_id') as string
@@ -26,7 +30,7 @@ export default async function NuevoPagoPage() {
     const amount = formData.get('amount') as string
 
     await supabase.from('payments').insert({
-      clinic_id: '76391f90-d92a-4768-8e2e-0de8c83ae7a1',
+      clinic_id: clinicId,
       patient_id: pacienteId,
       amount: parseFloat(amount),
       method,
@@ -34,7 +38,6 @@ export default async function NuevoPagoPage() {
       notes: formData.get('notes') as string || null,
     })
 
-    // Si el pago es con bono, descontar sesión
     if (method === 'bono' && bonoId) {
       const { data: bono } = await supabase
         .from('bonos')

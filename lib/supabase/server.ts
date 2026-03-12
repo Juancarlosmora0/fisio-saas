@@ -25,3 +25,18 @@ export async function createClient() {
     }
   )
 }
+
+export async function getClinicId(): Promise<string | null> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data } = await supabase
+    .from('users')
+    .select('clinic_id')
+    .eq('id', user.id)
+    .single()
+
+  return data?.clinic_id ?? null
+}
